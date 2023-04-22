@@ -1,0 +1,8 @@
+{
+  "printerIp": "2.239.218.86:82",
+  "printerUrl": "http://2.239.218.86:82/cgi-bin/fpmate.cgi",
+  "username": "dkprint",
+  "password": "dkprint",
+  "pollIntervalSeconds": 5,
+  "hostName": "https://dkprintfp.onrender.com"
+}

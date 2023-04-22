@@ -1,0 +1,187 @@
+<html>
+  <script src="./fp.js" type="text/javascript"></script>
+  <script
+    type="text/javascript"
+    src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"
+  ></script>
+
+  <script>
+    var config;
+
+    function onLoad() {
+      $.getJSON("config.json", function (data) {
+        config = data;
+        window.printerConfig = config;
+        const venueId = config.venueId;
+
+        window.consoleLog = function (message) {
+          var consoleMessage = `${new Date().toISOString()} - ${message}`;
+          document.getElementById("consoleLog").innerHTML +=
+            consoleMessage + "<br>";
+          console.log(consoleMessage);
+        };
+        var consoleLog = window.consoleLog;
+
+        consoleLog("onLoad got config");
+
+        document.getElementById("printerIp").value = config.printerIp;
+
+        consoleLog("onLoad");
+
+        var epsonDevice = new epson.fiscalPrint();
+        consoleLog("Connecting to printer at " + config.printerIp);
+
+        var lastJob = { id: -1, text: "" };
+
+        function pollServerForNewPrintJobs() {
+          // if (!printer) {
+          // consoleLog("Error connecting to printer");
+          // } else {
+          consoleLog("Connected to printer");
+
+          consoleLog(
+            "Polling server for new print jobs after print ID: " +
+              lastJob.id +
+              "... next poll in " +
+              config.pollIntervalSeconds +
+              " seconds"
+          );
+          fetch(
+            config.hostName +
+              "/api/printJobsAfter/" +
+              lastJob.id +
+              "/" +
+              venueId,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          )
+            .then((response) => response.json())
+            .then((data) => {
+              if (data && data.length) {
+                lastJob = data;
+                executePrint(data, "");
+              }
+            });
+          // }
+          setTimeout(
+            pollServerForNewPrintJobs,
+            config.pollIntervalSeconds * 1000
+          );
+        }
+
+        pollServerForNewPrintJobs();
+      });
+    }
+
+    function executePrint(items, xml = "") {
+      // customer id
+      // var customer_str = config.customer_str;
+
+      let itemsXml = "";
+
+      const OPERATOR_ID = 1;
+      let total = 0;
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        total += item.price * item.quantity;
+        itemsXml += `<printRecItem description="${item.name}" quantity="${item.quantity}" unitPrice="${item.price}" department="1" operator="${OPERATOR_ID}" justification="1" />`;
+      }
+
+      itemsXml +=
+        `<printRecTotal operator="${OPERATOR_ID}" description="` +
+        "CARTA DI CREDITO" +
+        '" payment="' +
+        total +
+        '" paymentType="2" index="1" justification = "1" />';
+
+      var printerXml = `<printerFiscalReceipt><beginFiscalReceipt operator="${OPERATOR_ID}" />${itemsXml}<endFiscalReceipt operator="${OPERATOR_ID}" /></printerFiscalReceipt>`;
+
+      var epos = new epson.fiscalPrint();
+      epos.onreceive = function (result, tag_names_array, add_info) {
+        window.consoleLog(`onreceive: ${result.success}`);
+
+        carta_di_credito_ok = 1;
+      };
+
+      epos.send(window.printerConfig.printerUrl, printerXml);
+
+      window.consoleLog("Printing: " + xml);
+      // printer.addTextLang("en");
+      // printer.addText(text);
+      // printer.send();
+    }
+  </script>
+
+  <body
+    style="
+      font-family: Arial, Helvetica, sans-serif;
+      background-color: #f2f2f2;
+      padding: 20px;
+    "
+    onLoad="onLoad()"
+  >
+    <div style="flex-direction: row; display: flex">
+      <div style="margin-right: 40">
+        <h2>Print App Log:</h2>
+        <div
+          id="consoleLog"
+          style="
+            border: 1px solid black;
+            height: 600;
+            width: 400;
+            padding: 5;
+            overflow-y: scroll;
+            background-color: white;
+          "
+        ></div>
+      </div>
+      <div style="display: flex; flex-direction: column">
+        <h2>Test Print:</h2>
+        PRINTER IP: (change in config.json)<br />
+        <input
+          type="text"
+          id="printerIp"
+          name="printe  rIp"
+          value="printerIp"
+          readonly
+          style="width: 200px; height: 30px; font-size: 16px"
+        /><br />
+        Note: This will print the text in the box below.<br />
+        Use XML format.<br />
+        <form style="flex-grow: 1; display: flex; flex-direction: column">
+          <textarea
+            id="ttp"
+            type="text"
+            name="ttp"
+            value="text"
+            cols="50"
+            style="flex-grow: 1; height: 100%"
+          ></textarea
+          ><br />
+          <button
+            type="button"
+            onclick="executePrint(JSON.parse(document.getElementsByName('ttp')[0].value), '')"
+            style="
+              background-color: #4caf50; /* Green */
+              border: none;
+              color: white;
+              padding: 15px 32px;
+              text-align: center;
+              text-decoration: none;
+              display: inline-block;
+              font-size: 16px;
+              margin: 4px 2px;
+              cursor: pointer;
+            "
+          >
+            Print
+          </button>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
