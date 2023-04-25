@@ -34,45 +34,41 @@
         var lastJob = { id: 1, text: "" };
 
         function pollServerForNewPrintJobs() {
-  const lastJobId = lastJob.id !== undefined ? lastJob.id : 1;
-  consoleLog(
-    "Polling server for new print jobs after print ID: " +
-      lastJobId +
-      "... next poll in " +
-      config.pollIntervalSeconds +
-      " seconds"
-  );
-  fetch(
-    config.hostName + "/api/printJobsAfter/" + lastJobId + "/" + venueId,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  )
-    .then((response) => response.json())
-    .then((data) => {
-      if (data && data.length) {
-        lastJob = data[data.length - 1];
-        executePrint(data, "");
-      }
-    });
-  setTimeout(
-    pollServerForNewPrintJobs,
-    config.pollIntervalSeconds * 1000
-  );
-}
-
+          const lastJobId = lastJob.id !== undefined ? lastJob.id : 1;
+          consoleLog(
+            "Polling server for new print jobs after print ID: " +
+              lastJobId +
+              "... next poll in " +
+              config.pollIntervalSeconds +
+              " seconds"
+          );
+          fetch(
+            config.hostName + "/api/printJobsAfter/" + lastJobId + "/" + venueId,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          )
+            .then((response) => response.json())
+            .then((data) => {
+              if (data && data.length) {
+                lastJob = data[data.length - 1];
+                executePrint(data);
+              }
+            });
+          setTimeout(
+            pollServerForNewPrintJobs,
+            config.pollIntervalSeconds * 1000
+          );
+        }
 
         pollServerForNewPrintJobs();
       });
     }
 
-    function executePrint(items, xml = "") {
-      // customer id
-      // var customer_str = config.customer_str;
-
+    function executePrint(items) {
       let itemsXml = "";
 
       const OPERATOR_ID = 1;
@@ -83,28 +79,18 @@
         itemsXml += `<printRecItem description="${item.name}" quantity="${item.quantity}" unitPrice="${item.price}" department="1" operator="${OPERATOR_ID}" justification="1" />`;
       }
 
-      itemsXml +=
-        `<printRecTotal operator="${OPERATOR_ID}" description="` +
-        "CARTA DI CREDITO" +
-        '" payment="' +
-        total +
-        '" paymentType="2" index="1" justification = "1" />';
+      itemsXml += `<printRecTotal operator="${OPERATOR_ID}" description="CARTA DI CREDITO" payment="${total}" paymentType="2" index="1" justification="1" />`;
 
       var printerXml = `<printerFiscalReceipt><beginFiscalReceipt operator="${OPERATOR_ID}" />${itemsXml}<endFiscalReceipt operator="${OPERATOR_ID}" /></printerFiscalReceipt>`;
 
       var epos = new epson.fiscalPrint();
       epos.onreceive = function (result, tag_names_array, add_info) {
         window.consoleLog(`onreceive: ${result.success}`);
-
-        carta_di_credito_ok = 1;
       };
 
       epos.send(window.printerConfig.printerUrl, printerXml);
 
-      window.consoleLog("Printing: " + xml);
-      // printer.addTextLang("en");
-      // printer.addText(text);
-      // printer.send();
+      window.consoleLog("Printing: " + printerXml);
     }
   </script>
 
