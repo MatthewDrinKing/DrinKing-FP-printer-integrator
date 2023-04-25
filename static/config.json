@@ -1,8 +1,9 @@
 {
-  "printerIp": "2.239.218.86:82",
-  "printerUrl": "http://2.239.218.86:82/cgi-bin/fpmate.cgi",
-  "username": "dkprint",
-  "password": "dkprint",
+  "venueId": "test",
+  "printerIp": "192.168.0.55",
+  "printerUrl": "http://192.168.0.253/cgi-bin/fpmate.cgi",
+  "username": "epson",
+  "password": "epson",
   "pollIntervalSeconds": 5,
-  "hostName": "https://dkprintfp.onrender.com"
+  "hostName": "http://89.40.10.57:8080"
 }

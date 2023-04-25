@@ -31,47 +31,39 @@
         var epsonDevice = new epson.fiscalPrint();
         consoleLog("Connecting to printer at " + config.printerIp);
 
-        var lastJob = { id: -1, text: "" };
+        var lastJob = { id: 1, text: "" };
 
         function pollServerForNewPrintJobs() {
-          // if (!printer) {
-          // consoleLog("Error connecting to printer");
-          // } else {
-          consoleLog("Connected to printer");
+  const lastJobId = lastJob.id !== undefined ? lastJob.id : 1;
+  consoleLog(
+    "Polling server for new print jobs after print ID: " +
+      lastJobId +
+      "... next poll in " +
+      config.pollIntervalSeconds +
+      " seconds"
+  );
+  fetch(
+    config.hostName + "/api/printJobsAfter/" + lastJobId + "/" + venueId,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  )
+    .then((response) => response.json())
+    .then((data) => {
+      if (data && data.length) {
+        lastJob = data[data.length - 1];
+        executePrint(data, "");
+      }
+    });
+  setTimeout(
+    pollServerForNewPrintJobs,
+    config.pollIntervalSeconds * 1000
+  );
+}
 
-          consoleLog(
-            "Polling server for new print jobs after print ID: " +
-              lastJob.id +
-              "... next poll in " +
-              config.pollIntervalSeconds +
-              " seconds"
-          );
-          fetch(
-            config.hostName +
-              "/api/printJobsAfter/" +
-              lastJob.id +
-              "/" +
-              venueId,
-            {
-              method: "GET",
-              headers: {
-                "Content-Type": "application/json",
-              },
-            }
-          )
-            .then((response) => response.json())
-            .then((data) => {
-              if (data && data.length) {
-                lastJob = data;
-                executePrint(data, "");
-              }
-            });
-          // }
-          setTimeout(
-            pollServerForNewPrintJobs,
-            config.pollIntervalSeconds * 1000
-          );
-        }
 
         pollServerForNewPrintJobs();
       });
