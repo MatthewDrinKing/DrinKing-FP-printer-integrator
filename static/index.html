@@ -73,14 +73,19 @@
   let itemsXml = "";
 
   const OPERATOR_ID = 1;
+  let subtotal = 0;
   let total = 0;
 
   for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-    total += item.unitPrice * item.quantity;
-    itemsXml += `<printRecItem description="${item.items[0].name}" quantity="${item.items[0].quantity}" unitPrice="${item.items[0].price}" department="1" operator="${OPERATOR_ID}" justification="1" />`;
+    for (let j = 0; j < items[i].items.length; j++) {
+      const item = items[i].items[j];
+      const itemSubtotal = item.quantity * item.price;
+      subtotal += itemSubtotal;
+      itemsXml += `<printRecItem description="${item.name}" quantity="${item.quantity}" unitPrice="${item.price}" department="1" operator="${OPERATOR_ID}" justification="1" />`;
+    }
   }
 
+  total = subtotal.toFixed(2);
   itemsXml += `<printRecTotal operator="${OPERATOR_ID}" description="CARTA DI CREDITO" payment="${total}" paymentType="2" index="1" justification="1" />`;
 
   var printerXml = `<printerFiscalReceipt><beginFiscalReceipt operator="${OPERATOR_ID}" />${itemsXml}<endFiscalReceipt operator="${OPERATOR_ID}" /></printerFiscalReceipt>`;
@@ -94,6 +99,11 @@
 
   window.consoleLog("Printing: " + printerXml);
 }
+
+
+
+
+
 
 
 
