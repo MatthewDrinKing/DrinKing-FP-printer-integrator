@@ -1,5 +1,6 @@
 <html>
   <script src="./fp.js" type="text/javascript"></script>
+  <script src="./epos-2.22.0.js" type="text/javascript"></script> <!-- include epos-2.22.0.js -->
   <script
     type="text/javascript"
     src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"
@@ -69,29 +70,33 @@
     }
 
     function executePrint(items) {
-      let itemsXml = "";
+  let itemsXml = "";
 
-      const OPERATOR_ID = 1;
-      let total = 0;
-      for (let i = 0; i < items.length; i++) {
-        const item = items[i];
-        total += item.price * item.quantity;
-        itemsXml += `<printRecItem description="${item.name}" quantity="${item.quantity}" unitPrice="${item.price}" department="1" operator="${OPERATOR_ID}" justification="1" />`;
-      }
+  const OPERATOR_ID = 1;
+  let total = 0;
 
-      itemsXml += `<printRecTotal operator="${OPERATOR_ID}" description="CARTA DI CREDITO" payment="${total}" paymentType="2" index="1" justification="1" />`;
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    total += item.unitPrice * item.quantity;
+    itemsXml += `<printRecItem description="${item.items[0].name}" quantity="${item.items[0].quantity}" unitPrice="${item.items[0].price}" department="1" operator="${OPERATOR_ID}" justification="1" />`;
+  }
 
-      var printerXml = `<printerFiscalReceipt><beginFiscalReceipt operator="${OPERATOR_ID}" />${itemsXml}<endFiscalReceipt operator="${OPERATOR_ID}" /></printerFiscalReceipt>`;
+  itemsXml += `<printRecTotal operator="${OPERATOR_ID}" description="CARTA DI CREDITO" payment="${total}" paymentType="2" index="1" justification="1" />`;
 
-      var epos = new epson.fiscalPrint();
-      epos.onreceive = function (result, tag_names_array, add_info) {
-        window.consoleLog(`onreceive: ${result.success}`);
-      };
+  var printerXml = `<printerFiscalReceipt><beginFiscalReceipt operator="${OPERATOR_ID}" />${itemsXml}<endFiscalReceipt operator="${OPERATOR_ID}" /></printerFiscalReceipt>`;
 
-      epos.send(window.printerConfig.printerUrl, printerXml);
+  var epos = new epson.fiscalPrint();
+  epos.onreceive = function (result, tag_names_array, add_info) {
+    window.consoleLog(`onreceive: ${result.success}`);
+  };
 
-      window.consoleLog("Printing: " + printerXml);
-    }
+  epos.send(window.printerConfig.printerUrl, printerXml);
+
+  window.consoleLog("Printing: " + printerXml);
+}
+
+
+
   </script>
 
   <body

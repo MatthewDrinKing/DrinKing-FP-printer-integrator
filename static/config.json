@@ -5,5 +5,5 @@
   "username": "epson",
   "password": "epson",
   "pollIntervalSeconds": 5,
-  "hostName": "http://89.40.10.57:8080"
+  "hostName": "http://64.226.90.94:8080"
 }
