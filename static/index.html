@@ -34,40 +34,37 @@
         consoleLog("Connecting to printer at " + config.printerIp);
 
         function pollServerForNewPrintJobs() {
-          const lastJobId = lastJob ? lastJob.id : 0;
-          consoleLog(
-            "Polling server for new print jobs after print ID: " +
-              lastJobId +
-              "... next poll in " +
-              config.pollIntervalSeconds +
-              " seconds"
-          );
-          fetch(
-            config.hostName + "/api/printJobsAfter/" + lastJobId + "/" + venueId,
-            {
-              method: "GET",
-              headers: {
-                "Content-Type": "application/json",
-              },
-            }
-          )
-            .then((response) => response.json())
-            .then((data) => {
-              if (data && data.length) {
-                lastJob = data[data.length - 1];
-                executePrint(data);
-              }
-            })
-            .catch((error) => {
-              console.error("Failed to fetch print jobs:", error);
-            })
-            .finally(() => {
-              setTimeout(
-                pollServerForNewPrintJobs,
-                config.pollIntervalSeconds * 1000
-              );
-            });
-        }
+  const lastJobId = lastJob ? lastJob.id : null;
+  const url = lastJobId
+    ? `${config.hostName}/api/printJobsAfter/${lastJobId}/${venueId}`
+    : `${config.hostName}/api/printJobs/${venueId}`;
+
+  consoleLog(`Polling server for new print jobs at ${url}`);
+
+  fetch(url, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data && data.length > 0) {
+        lastJob = data[data.length - 1];
+        executePrint(data);
+      }
+    })
+    .catch((error) => {
+      console.error("Failed to fetch print jobs:", error);
+    })
+    .finally(() => {
+      setTimeout(
+        pollServerForNewPrintJobs,
+        config.pollIntervalSeconds * 1000
+      );
+    });
+}
+
         pollServerForNewPrintJobs();
       });
     }

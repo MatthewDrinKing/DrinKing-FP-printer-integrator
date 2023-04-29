@@ -7,20 +7,27 @@ app.use(express.json());
 
 const printJobs = [];
 
-app.get("/api/printJobsAfter/:lastId/:venueId", (req, res) => {
-  const lastId = Number(req.params.lastId);
+app.get("/api/printJobsAfter/:lastJobId/:venueId", (req, res) => {
+  const lastJobId = parseInt(req.params.lastJobId);
   const venueId = req.params.venueId;
-
-  if (lastId === 0) {
-    // If lastId is 0, return only the ID of the most recent print job
-    const lastPrintJobId = printJobs.length ? printJobs[printJobs.length - 1].id : 0;
-    res.send([{ id: lastPrintJobId }]);
+  let printJobs;
+  
+  if (lastJobId === 0) {
+    // If last job ID is 0, then return the first print job if it exists
+    if (printQueue.length > 0) {
+      printJobs = [printQueue[0]];
+    } else {
+      printJobs = [];
+    }
   } else {
-    // Otherwise, return only the print jobs added after the lastId
-    const filteredPrintJobs = printJobs.filter((job) => job.id > lastId && job.venueId === venueId);
-    res.send(filteredPrintJobs);
+    // Otherwise, return all print jobs after the given last job ID
+    printJobs = printQueue.filter((job) => job.id > lastJobId && job.venueId === venueId);
   }
+
+  res.send(printJobs);
 });
+
+
 
 
 
