@@ -34,10 +34,9 @@
         consoleLog("Connecting to printer at " + config.printerIp);
 
         function pollServerForNewPrintJobs() {
-  const lastJobId = lastJob ? lastJob.id : null;
-  const url = lastJobId
-    ? `${config.hostName}/api/printJobsAfter/${lastJobId}/${venueId}`
-    : `${config.hostName}/api/printJobs/${venueId}`;
+        const lastJobId = lastJob ? lastJob.id : 0;
+        const url = `${config.hostName}/api/printJobsAfter/${lastJobId}/${venueId}`;
+
 
   consoleLog(`Polling server for new print jobs at ${url}`);
 

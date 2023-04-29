@@ -10,40 +10,31 @@ const printJobs = [];
 app.get("/api/printJobsAfter/:lastJobId/:venueId", (req, res) => {
   const lastJobId = parseInt(req.params.lastJobId);
   const venueId = req.params.venueId;
-  let printJobs;
-  
+  let jobs;
+
   if (lastJobId === 0) {
     // If last job ID is 0, then return the first print job if it exists
     if (printJobs.length > 0) {
-      printJobs = [printJobs[0]];
+      jobs = [printJobs[0]];
     } else {
-      printJobs = [];
-    }    
+      jobs = [];
+    }
   } else {
     // Otherwise, return all print jobs after the given last job ID
-    printJobs = printQueue.filter((job) => job.id > lastJobId && job.venueId === venueId);
+    jobs = printJobs.filter((job) => job.id > lastJobId && job.venueId === venueId);
   }
 
-  res.send(printJobs);
+  res.send(jobs);
 });
 
-
-
-
-
-
-
 app.post("/api/receivePrintJob", function (req, res) {
-  let price = 0;
-
   console.log("/api/receivePrintJob", req.body);
-  console.log(req);
 
   const venueId = req.body.venueId;
   const tableNumber = req.body.tableNumber;
   const items = req.body.items;
   const total = items.reduce((acc, item) => acc + Number(item.price), 0);
-	
+
   const receiptText = `
       Table: ${tableNumber}\n\n
       Items: ${items.map((item) => item.name).join("\n")}
@@ -52,7 +43,7 @@ app.post("/api/receivePrintJob", function (req, res) {
 
   const newJob = {
     id: printJobs.length + 1,
-    venueId: req.body.venueId,
+    venueId: venueId,
     name: "print",
     unitPrice: total, 
     quantity: String(items.length),
@@ -62,9 +53,8 @@ app.post("/api/receivePrintJob", function (req, res) {
   };
 
   printJobs.push(newJob);
-  console.log(req);
-  console.log("DK Print job received", newJob);
 
+  console.log("DK Print job received", newJob);
   res.send("DK Print job received");
 });
 
