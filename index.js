@@ -14,11 +14,11 @@ app.get("/api/printJobsAfter/:lastJobId/:venueId", (req, res) => {
   
   if (lastJobId === 0) {
     // If last job ID is 0, then return the first print job if it exists
-    if (printQueue.length > 0) {
-      printJobs = [printQueue[0]];
+    if (printJobs.length > 0) {
+      printJobs = [printJobs[0]];
     } else {
       printJobs = [];
-    }
+    }    
   } else {
     // Otherwise, return all print jobs after the given last job ID
     printJobs = printQueue.filter((job) => job.id > lastJobId && job.venueId === venueId);
