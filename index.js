@@ -12,12 +12,15 @@ app.get("/api/printJobsAfter/:lastId/:venueId", (req, res) => {
   const venueId = req.params.venueId;
 
   if (lastId === 0) {
+    // If lastId is 0, return all print jobs
     res.send(printJobs);
   } else {
+    // Otherwise, return only the print jobs added after the lastId
     const filteredPrintJobs = printJobs.filter((job) => job.id > lastId && job.venueId === venueId);
     res.send(filteredPrintJobs);
   }
 });
+
 
 
 
