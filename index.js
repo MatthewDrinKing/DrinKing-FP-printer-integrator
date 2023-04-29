@@ -7,10 +7,16 @@ app.use(express.json());
 
 const printJobs = [];
 
-app.get("/api/printJobsAfter/:lastJobId/:venueId", function (req, res) {
-  const lastJobId = req.params.lastJobId === "undefined" ? -1 : req.params.lastJobId;
-  var newPrintJobs = printJobs.filter((job) => job.id > lastJobId);
-  res.send(newPrintJobs);
+app.get("/api/printJobsAfter/:lastId/:venueId", (req, res) => {
+  const lastId = Number(req.params.lastId);
+  const venueId = req.params.venueId;
+
+  if (lastId === 0) {
+    res.send(printJobs);
+  } else {
+    const filteredPrintJobs = printJobs.filter((job) => job.id > lastId && job.venueId === venueId);
+    res.send(filteredPrintJobs);
+  }
 });
 
 

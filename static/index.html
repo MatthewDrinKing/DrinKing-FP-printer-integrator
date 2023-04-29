@@ -10,6 +10,7 @@
     var config;
 
     function onLoad() {
+      var lastJob = null;
       $.getJSON("config.json", function (data) {
         config = data;
         window.printerConfig = config;
@@ -32,10 +33,8 @@
         var epsonDevice = new epson.fiscalPrint();
         consoleLog("Connecting to printer at " + config.printerIp);
 
-        var lastJob = { id: 1, text: "" };
-
         function pollServerForNewPrintJobs() {
-          const lastJobId = lastJob.id !== undefined ? lastJob.id : 1;
+          const lastJobId = lastJob ? lastJob.id : 0;
           consoleLog(
             "Polling server for new print jobs after print ID: " +
               lastJobId +
@@ -58,13 +57,17 @@
                 lastJob = data[data.length - 1];
                 executePrint(data);
               }
+            })
+            .catch((error) => {
+              console.error("Failed to fetch print jobs:", error);
+            })
+            .finally(() => {
+              setTimeout(
+                pollServerForNewPrintJobs,
+                config.pollIntervalSeconds * 1000
+              );
             });
-          setTimeout(
-            pollServerForNewPrintJobs,
-            config.pollIntervalSeconds * 1000
-          );
         }
-
         pollServerForNewPrintJobs();
       });
     }
@@ -100,13 +103,6 @@
   window.consoleLog("Printing: " + printerXml);
 }
 
-
-
-
-
-
-
-
   </script>
 
   <body
@@ -138,7 +134,7 @@
         <input
           type="text"
           id="printerIp"
-          name="printe  rIp"
+          name="printerIp"
           value="printerIp"
           readonly
           style="width: 200px; height: 30px; font-size: 16px"
